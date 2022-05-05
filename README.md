@@ -43,6 +43,12 @@ Open Terminal and execute the following command.
     $ sudo python3 sample_2jciebu.py
     ```
     To stop, press Ctrl + C.
+   
+    To operate background: 
+    $ sudo nohup python3 sample_2jciebu.py &
+
+    To stop,
+    $ sudo kill -2 PID    
 
 ## Dependencies
 2jciebu-usb-raspberrypi requires the following dependencies:

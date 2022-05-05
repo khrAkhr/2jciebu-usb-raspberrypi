@@ -1,7 +1,18 @@
+# 以下サイトを参考に作成
+# https://mimimopu.com/omron_envsensor_pc/
 import serial
 import time
 from datetime import datetime
 import sys
+import csv
+
+CSV_FILE = "../omron.csv"
+with open(CSV_FILE, 'w', newline="") as f:
+    writer = csv.writer(f)
+    writer.writerow(['Time measured', 'Temperature', 'Relative humidity', 'Ambient light',
+                        'Barometric pressure', 'Sound noise', 'eTVOC', 'eCO2', 'Discomfort index',
+                        'Heat stroke', 'Vibration information', 'SI value', 'PGA', 'Seismic intensity'])
+
 
 # LED display rule. Normal Off.
 DISPLAY_RULE_NORMALLY_OFF = 0
@@ -30,10 +41,8 @@ def calc_crc(buf, length):
     return (bytearray([crcL, crcH]))
 
 
-def print_latest_data(data):
-    """
-    print measured latest value.
-    """
+def print_latest_data(data, csv_file):
+    # print measured latest value.
     time_measured = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     temperature = str( s16(int(hex(data[9]) + '{:02x}'.format(data[8], 'x'), 16)) / 100)
     relative_humidity = str(int(hex(data[11]) + '{:02x}'.format(data[10], 'x'), 16) / 100)
@@ -89,11 +98,15 @@ def print_latest_data(data):
     print("PGA flag:" + pga_flag)
     print("Seismic intensity flag:" + seismic_intensity_flag)
 
+    # Output CSV
+    with open(csv_file, 'a', newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([time_measured, temperature, relative_humidity, ambient_light,
+                         barometric_pressure, sound_noise, eTVOC, eCO2, discomfort_index,
+                         heat_stroke, vibration_information, si_value, pga, seismic_intensity])
 
 def now_utc_str():
-    """
-    Get now utc.
-    """
+    # Get now utc.
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -117,8 +130,8 @@ if __name__ == '__main__':
             tmp = ser.write(command)
             time.sleep(0.1)
             data = ser.read(ser.inWaiting())
-            print_latest_data(data)
-            time.sleep(1)
+            print_latest_data(data, CSV_FILE)
+            time.sleep(5)
 
     except KeyboardInterrupt:
         # LED Off.
